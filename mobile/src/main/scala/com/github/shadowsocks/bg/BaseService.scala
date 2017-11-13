@@ -143,7 +143,8 @@ trait BaseService extends Service {
       "-b", "127.0.0.1",
       "-l", app.dataStore.portProxy.toString,
       "-t", "600",
-      "-c", "shadowsocks.json"))
+      "-c", "shadowsocks.json",
+      "--no-delay"))
 
     if (profile.route != Acl.ALL) {
       cmd += "--acl"
