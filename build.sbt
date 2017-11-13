@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.11",
   dexMaxHeap := "4g",
 
-  organization := "com.github.shadowsocks",
+  organization := "com.github.shadowsocks-jz",
 
   platformTarget := "android-27",
 
