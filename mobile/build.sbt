@@ -3,7 +3,7 @@ enablePlugins(AndroidGms)
 
 android.useSupportVectors
 
-name := "shadowsocks"
+name := "shadowsocks-jz"
 version := "4.3.0"
 versionCode := Some(196)
 
