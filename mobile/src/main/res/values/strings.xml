@@ -50,8 +50,8 @@
   <string name="route_entry_gfwlist">GFW List</string>
   <string name="route_entry_chinalist">China List</string>
   <string name="proxied_apps">Apps VPN mode</string>
-  <string name="proxied_apps_summary">Allow selected apps to bypass VPN, not available on Android 4.x</string>
-  <string name="proxied_apps_summary_v21">Allow selected apps to bypass VPN</string>
+  <string name="proxied_apps_summary">Configure VPN mode for selected apps, not available on Android 4.x</string>
+  <string name="proxied_apps_summary_v21">Configure VPN mode for selected apps</string>
   <string name="on">On</string>
   <string name="bypass_apps">Bypass Mode</string>
   <string name="bypass_apps_summary">Enable this option to bypass selected apps</string>
@@ -72,6 +72,7 @@
   <string name="stop">Stop</string>
   <string name="stopping">Shutting down…</string>
   <string name="vpn_error">%s</string>
+  <string name="vpn_permission_denied">Permission denied to create a VPN service</string>
   <string name="reboot_required">Failed to start VPN service. You might need to reboot your device.</string>
   <string name="profile_invalid_input">No valid profile data found.</string>
 
