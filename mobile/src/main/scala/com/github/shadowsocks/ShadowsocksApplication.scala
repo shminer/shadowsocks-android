@@ -28,20 +28,21 @@ import android.app.{Application, NotificationChannel, NotificationManager}
 import android.content._
 import android.content.pm.{PackageInfo, PackageManager}
 import android.content.res.Configuration
-import android.os.{Binder, Build, LocaleList}
+import android.os.{Build, LocaleList}
 import android.support.v7.app.AppCompatDelegate
 import android.util.Log
 import com.evernote.android.job.JobManager
 import com.github.shadowsocks.acl.DonaldTrump
-import com.github.shadowsocks.bg.{BaseService, ProxyService, TransproxyService, VpnService}
+import com.github.shadowsocks.bg.{ProxyService, TransproxyService, VpnService}
 import com.github.shadowsocks.database.{DBHelper, Profile, ProfileManager}
-import com.github.shadowsocks.preference.OrmLitePreferenceDataStore
+import com.github.shadowsocks.preference.{BottomSheetPreferenceDialogFragment, IconListPreference, OrmLitePreferenceDataStore}
 import com.github.shadowsocks.utils.CloseUtils._
 import com.github.shadowsocks.utils._
 import com.google.android.gms.analytics.{GoogleAnalytics, HitBuilders, StandardExceptionParser, Tracker}
 import com.google.firebase.FirebaseApp
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.j256.ormlite.logger.LocalLog
+import com.takisoft.fix.support.v7.preference.PreferenceFragmentCompat
 
 import scala.collection.JavaConversions._
 
@@ -92,8 +93,8 @@ class ShadowsocksApplication extends Application {
   }
 
   private def checkChineseLocale(locale: Locale): Locale = if (locale.getLanguage == "zh") locale.getCountry match {
-    case "CN" | "TW" => null            // already supported
-    case _ => locale.getScript match {  // fallback to the corresponding script
+    case "CN" | "TW" => null
+    case _ => (if (Build.VERSION.SDK_INT >= 21) locale.getScript else null) match {
       case "Hans" => SIMPLIFIED_CHINESE
       case "Hant" => TRADITIONAL_CHINESE
       case script =>
@@ -102,7 +103,8 @@ class ShadowsocksApplication extends Application {
           case "SG" => SIMPLIFIED_CHINESE
           case "HK" | "MO" => TRADITIONAL_CHINESE
           case _ =>
-            Log.w(TAG, "Unknown zh locale: %s. Falling back to zh-Hans-CN...".format(locale.toLanguageTag))
+            Log.w(TAG, "Unknown zh locale: %s. Falling back to zh-Hans-CN..."
+              .formatLocal(Locale.ENGLISH, if (Build.VERSION.SDK_INT >= 21) locale.toLanguageTag else locale))
             SIMPLIFIED_CHINESE
         }
     }
@@ -152,18 +154,16 @@ class ShadowsocksApplication extends Application {
 
     FirebaseApp.initializeApp(this)
     remoteConfig.setDefaults(R.xml.default_configs)
-    remoteConfig.fetch().addOnCompleteListener(task => if (task.isSuccessful) remoteConfig.activateFetched())
+    remoteConfig.fetch().addOnCompleteListener(task =>
+        if (task.isSuccessful) remoteConfig.activateFetched() else Log.e(TAG, "Failed to fetch config"))
 
     JobManager.create(this).addJobCreator(DonaldTrump)
+    PreferenceFragmentCompat.registerPreferenceFragment(classOf[IconListPreference],
+      classOf[BottomSheetPreferenceDialogFragment])
 
     TcpFastOpen.enabled(dataStore.getBoolean(Key.tfo, TcpFastOpen.sendEnabled))
 
     if (dataStore.getLong(Key.assetUpdateTime, -1) != info.lastUpdateTime) copyAssets()
-    // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
-    lazy val userIndex = Binder.getCallingUserHandle.hashCode
-    if (!(1025 to 65535 contains dataStore.portProxy)) dataStore.putInt(Key.portProxy, 1080 + userIndex)
-    if (!(1025 to 65535 contains dataStore.portLocalDns)) dataStore.putInt(Key.portLocalDns, 5450 + userIndex)
-    if (!(1025 to 65535 contains dataStore.portTransproxy)) dataStore.putInt(Key.portTransproxy, 8200 + userIndex)
 
     if (Build.VERSION.SDK_INT >= 26) {
       val nm = getSystemService(classOf[NotificationManager])
